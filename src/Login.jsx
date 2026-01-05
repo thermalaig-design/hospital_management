@@ -65,7 +65,7 @@ function Login() {
               />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">MAHARAJA AGARSEN HOSPITAL</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">MAHARAJA AGRASEN HOSPITAL</h1>
           <div className="w-32 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent mx-auto mt-3 mb-4 rounded-full"></div>
           <h2 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Welcome Back!</h2>
           <p className="text-gray-500 text-sm mt-3">Please enter your phone number to continue</p>
