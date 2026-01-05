@@ -173,6 +173,7 @@ const HospitalTrusteeApp = () => {
           element={
             <ProtectedRoute>
               <Profile 
+                onNavigate={handleNavigate}
                 onNavigateBack={() => navigate('/')}
                 onProfileUpdate={() => {}}
               />
