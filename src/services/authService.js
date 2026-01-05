@@ -1,5 +1,5 @@
 // authService.js - Frontend API calls
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://hospital-management-q8yq.onrender.com/api/auth';
 
 export const checkPhoneNumber = async (phoneNumber) => {
   const response = await fetch(`${API_URL}/check-phone`, {
