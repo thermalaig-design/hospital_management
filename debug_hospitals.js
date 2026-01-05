@@ -7,7 +7,7 @@ async function testHospitalsAPI() {
   
   try {
     // Test with the same configuration as the frontend
-    const response = await axios.get('http://localhost:5000/api/hospitals', {
+    const response = await axios.get('https://hospital-management-q8yq.onrender.com/api/hospitals', {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
