@@ -122,7 +122,7 @@ const Home = ({ onNavigate, onLogout, isMember }) => {
             <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/image-1767090787454.png?width=8000&height=8000&resize=contain" alt="Logo" className="h-12 w-12 sm:h-16 sm:w-16 object-contain" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 truncate">Maharaja Agarsen Hospital</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 truncate">Maharaja Agrasen Hospital</h1>
             <p className="text-gray-600 text-sm sm:text-base font-medium">Trustee & Patron Portal</p>
             {userProfile?.name && (
               <p className="text-indigo-600 text-xs sm:text-sm font-semibold mt-1 truncate">Welcome, {userProfile.name}</p>
