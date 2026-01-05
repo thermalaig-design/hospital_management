@@ -25,7 +25,7 @@ const InputField = ({ label, icon: Icon, type = 'text', value, onChange, disable
 );
 
 
-const Profile = ({ onNavigateBack, onProfileUpdate }) => {
+const Profile = ({ onNavigate, onNavigateBack, onProfileUpdate }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isFromDatabase, setIsFromDatabase] = useState(false);
@@ -256,12 +256,7 @@ const Profile = ({ onNavigateBack, onProfileUpdate }) => {
       <Sidebar
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
-        onNavigate={() => {
-          // Since Profile doesn't have onNavigate prop, we need to handle navigation differently
-          // For now, we'll just close the menu
-          setIsMenuOpen(false);
-          // The actual navigation would need to be handled by the parent component
-        }}
+        onNavigate={onNavigate}
         currentPage="profile"
       />
 
