@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Mail, Calendar, MapPin, Briefcase, Award, Users, Search, Phone, Star, Stethoscope, Building2, ChevronRight, Filter, ArrowLeft, Menu, LogOut, Bell, Heart, ArrowRight, X, Home as HomeIcon, Clock, FileText, UserPlus, Pill, ChevronLeft } from 'lucide-react';
 import { getAllMembers, getMemberTypes, getAllHospitals, getAllElectedMembers, getAllCommitteeMembers } from './services/api';
+import { mergeMemberData, isElectedMember } from './services/mergeService';
 import Sidebar from './components/Sidebar';
 
 const Directory = ({ onNavigate }) => {
@@ -384,21 +385,21 @@ const Directory = ({ onNavigate }) => {
       <div className="px-6 mt-2 space-y-4" ref={contentRef}>
         {currentPageMembers.length > 0 ? (
           currentPageMembers.map((item) => (
-            <div 
-              key={item['S. No.'] || item.id || Math.random()} 
+            <div
+              key={item['S. No.'] || item.id || Math.random()}
               className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 group hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer"
-              onClick={() => {
+              onClick={async () => {
                 // Check if this is a committee group (committee name)
                 if (item.is_committee_group) {
                   // Navigate to a new view showing all members of this committee
-                  const filteredCommitteeMembers = committeeMembers.filter(cm => 
+                  const filteredCommitteeMembers = committeeMembers.filter(cm =>
                     cm.committee_name_hindi === item.Name || cm.committee_name_english === item.Name
                   );
-                  
+
                   console.log('Committee clicked:', item.Name);
                   console.log('Filtered members:', filteredCommitteeMembers);
                   console.log('All committee members:', committeeMembers);
-                  
+
                   const committeeData = {
                     'Name': item.Name,
                     'type': 'Committee',
@@ -406,29 +407,29 @@ const Directory = ({ onNavigate }) => {
                     'committee_name_hindi': item.Name,
                     'is_committee_group': true
                   };
-                  
+
                   // Add the current tab name for back button
                   committeeData.previousScreenName = directoryTab;
-                  
+
                   onNavigate('committee-members', committeeData);
                 } else {
                   // Determine if this is a healthcare member (from opd_schedule)
-                  const isHealthcareMember = !!item.consultant_name || 
+                  const isHealthcareMember = !!item.consultant_name ||
                                   (item.original_id && item.original_id.toString().startsWith('DOC')) ||
                                   (item['S. No.'] && item['S. No.'].toString().startsWith('DOC'));
-                  
+
                   // Determine if this is a hospital member (from hospitals table)
-                  const isHospitalMember = !!item.is_hospital || 
+                  const isHospitalMember = !!item.is_hospital ||
                                         (item.original_id && item.original_id.toString().startsWith('HOSP')) ||
                                         (item['S. No.'] && item['S. No.'].toString().startsWith('HOSP'));
-                  
+
                   // Determine if this is an elected member (from elected_members table)
-                  const isElectedMember = !!item.is_elected_member ||
+                  const isElectedMemberType = !!item.is_elected_member ||
                                       (item.original_id && item.original_id.toString().startsWith('ELECT')) ||
                                       (item['S. No.'] && item['S. No.'].toString().startsWith('ELECT'));
-                  
+
                   // Create member data based on the source
-                  const memberData = {
+                  let memberData = {
                     'S. No.': item['S. No.'] || item.original_id || `MEM${Math.floor(Math.random() * 10000)}`,
                     'Name': item.Name || item.hospital_name || 'N/A',
                     'Mobile': item.Mobile || item.contact_phone || 'N/A',
@@ -437,9 +438,9 @@ const Directory = ({ onNavigate }) => {
                     'Membership number': item['Membership number'] || item.membership_number || 'N/A',
                     'isHealthcareMember': isHealthcareMember,
                     'isHospitalMember': isHospitalMember,
-                    'isElectedMember': isElectedMember
+                    'isElectedMember': isElectedMemberType
                   };
-                  
+
                   // Add Members Table fields only if NOT a healthcare member and NOT a hospital member
                   if (!isHealthcareMember && !isHospitalMember) {
                     if (item['Company Name']) memberData['Company Name'] = item['Company Name'];
@@ -448,7 +449,7 @@ const Directory = ({ onNavigate }) => {
                     if (item['Resident Landline']) memberData['Resident Landline'] = item['Resident Landline'];
                     if (item['Office Landline']) memberData['Office Landline'] = item['Office Landline'];
                   }
-                  
+
                   // Add hospital-specific fields (from hospitals table) only if it's a hospital member
                   if (isHospitalMember) {
                     memberData.hospital_name = item.hospital_name || 'N/A';
@@ -468,7 +469,7 @@ const Directory = ({ onNavigate }) => {
                     memberData.is_active = item.is_active || 'N/A';
                     memberData.id = item.original_id || null;
                   }
-                  
+
                   // Add healthcare-specific fields (from opd_schedule) only if it's a healthcare member
                   if (isHealthcareMember) {
                     memberData.department = item.department || 'N/A';
@@ -483,9 +484,9 @@ const Directory = ({ onNavigate }) => {
                     memberData.notes = item.notes || item.unit_notes || 'N/A';
                     memberData.id = item.id || item.original_id || null;
                   }
-                  
+
                   // Add elected members-specific fields (from elected_members table) only if it's an elected member
-                  if (isElectedMember) {
+                  if (isElectedMemberType) {
                     memberData.member_id = item.member_id || 'N/A';
                     memberData.name = item.name || 'N/A';
                     memberData.phone1 = item.phone1 || 'N/A';
@@ -495,13 +496,22 @@ const Directory = ({ onNavigate }) => {
                     memberData.created_at = item.created_at || 'N/A';
                     memberData.id = item.original_id || item.id || null;
                   }
-                  
+
+                  // If this is a Members Table entry, check if they're also an elected member
+                  if (!isHealthcareMember && !isHospitalMember && !isElectedMemberType && item['S. No.']) {
+                    try {
+                      memberData = await mergeMemberData(memberData);
+                    } catch (error) {
+                      console.error('Error merging member data:', error);
+                    }
+                  }
+
                   // Add the current tab name for back button
                   memberData.previousScreenName = directoryTab;
-                  
+
                   // Store the current directory tab in sessionStorage to restore when coming back
                   sessionStorage.setItem('restoreDirectoryTab', directoryTab);
-                  
+
                   onNavigate('member-details', memberData);
                 }
               }}
@@ -513,9 +523,16 @@ const Directory = ({ onNavigate }) => {
               <div className="flex-1">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-gray-800 text-base leading-tight group-hover:text-indigo-600 transition-colors">
-                      {item.Name || 'N/A'}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-gray-800 text-base leading-tight group-hover:text-indigo-600 transition-colors">
+                        {item.Name || 'N/A'}
+                      </h3>
+                      {item.is_elected && (
+                        <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                          Elected
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-col gap-1 mt-1">
                       {item['Membership number'] && (
                         <p className="text-gray-500 text-xs font-medium">
@@ -538,6 +555,11 @@ const Directory = ({ onNavigate }) => {
                       {item.city && (
                         <p className="text-gray-500 text-xs">
                           {item.city}, {item.state || ''}
+                        </p>
+                      )}
+                      {item.is_elected && item.location && (
+                        <p className="text-emerald-700 text-xs font-medium">
+                          Location: {item.location}
                         </p>
                       )}
                     </div>

@@ -154,11 +154,28 @@ export const getAllHospitals = async (req, res, next) => {
 export const getAllElectedMembers = async (req, res, next) => {
   try {
     const electedMembers = await memberService.getAllElectedMembers();
-    
+
     res.status(200).json({
       success: true,
       count: electedMembers.length,
       data: electedMembers
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get elected member data for a specific member ID
+ */
+export const getElectedMemberData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const electedMember = await memberService.getElectedMemberByMemberId(id);
+
+    res.status(200).json({
+      success: true,
+      data: electedMember
     });
   } catch (error) {
     next(error);

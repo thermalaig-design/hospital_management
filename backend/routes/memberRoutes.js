@@ -27,6 +27,9 @@ router.get('/hospitals', memberController.getAllHospitals);
 // Get all elected members
 router.get('/elected-members', memberController.getAllElectedMembers);
 
+// Get elected member data for a specific member ID
+router.get('/members/:id/elected', memberController.getElectedMemberData);
+
 // Get member by ID (must be last to avoid conflicts)
 router.get('/members/:id', memberController.getMemberById);
 

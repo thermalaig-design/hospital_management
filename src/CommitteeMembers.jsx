@@ -1,14 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Users, ChevronLeft, Phone, Mail, MapPin, ChevronRight } from 'lucide-react';
+import { mergeMemberData } from './services/mergeService';
 
 const CommitteeMembers = ({ committeeData, onNavigateBack, previousScreenName, onNavigate }) => {
+  const [mergedMembers, setMergedMembers] = useState([]);
+
+  useEffect(() => {
+    const mergeMembersData = async () => {
+      const committeeMembers = committeeData.committee_members || [];
+      const merged = await Promise.all(
+        committeeMembers.map(async (member) => {
+          try {
+            return await mergeMemberData(member);
+          } catch (error) {
+            console.error('Error merging member:', error);
+            return member;
+          }
+        })
+      );
+      setMergedMembers(merged);
+    };
+
+    mergeMembersData();
+  }, [committeeData]);
+
   // Get screen name for back button
   const getScreenName = () => {
     if (!previousScreenName) return 'Directory';
-    
+
     // Handle both route paths and screen names
     const screenName = previousScreenName.replace(/^\//, ''); // Remove leading slash if present
-    
+
     const screenNames = {
       'directory': 'Directory',
       '/directory': 'Directory',
@@ -22,11 +44,11 @@ const CommitteeMembers = ({ committeeData, onNavigateBack, previousScreenName, o
       'hospitals': 'Hospitals',
       '/': 'Home'
     };
-    
+
     return screenNames[previousScreenName] || screenNames[screenName] || 'Directory';
   };
 
-  const committeeMembers = committeeData.committee_members || [];
+  const committeeMembers = mergedMembers.length > 0 ? mergedMembers : (committeeData.committee_members || []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,10 +112,22 @@ const CommitteeMembers = ({ committeeData, onNavigateBack, previousScreenName, o
                   <User className="h-7 w-7" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-gray-800 text-lg group-hover:text-indigo-600 transition-colors">
-                    {member.member_name_english || member.member_name_hindi || 'N/A'}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-gray-800 text-lg group-hover:text-indigo-600 transition-colors">
+                      {member.member_name_english || member.member_name_hindi || 'N/A'}
+                    </h3>
+                    {member.is_elected && (
+                      <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                        Elected
+                      </span>
+                    )}
+                  </div>
                   <p className="text-indigo-600 text-sm font-medium mt-1">{member.member_role || 'N/A'}</p>
+                  {member.is_elected && member.position && (
+                    <p className="text-emerald-700 text-xs font-medium mt-1">
+                      Position: {member.position}
+                    </p>
+                  )}
                   <div className="flex items-center gap-3 mt-3 flex-wrap">
                     {(member.Mobile || member.phone1 || member.phone2) && (
                       <a 

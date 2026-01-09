@@ -584,6 +584,35 @@ export const getAllHospitals = async () => {
 };
 
 /**
+ * Get elected member by member_id
+ */
+export const getElectedMemberByMemberId = async (memberId) => {
+  try {
+    console.log(`Fetching elected member for member_id: ${memberId}`);
+
+    const { data, error } = await supabase
+      .from('elected_members')
+      .select('*')
+      .eq('member_id', memberId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching elected member:', error);
+      return null;
+    }
+
+    if (data) {
+      console.log(`Found elected member: ${data.name}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getElectedMemberByMemberId:', error);
+    return null;
+  }
+};
+
+/**
  * Get all elected members from elected_members table
  */
 export const getAllElectedMembers = async () => {
